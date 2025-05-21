@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title>Peta Geologi Jabalnusra</title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="data/PetaGeologiJabalnusra_0.js"></script>
+        <script>
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+        }
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[-11.079436957118432,109.41953474095139],[-4.102125737904514,127.1092234082521]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var title = new L.Control({'position':'topright'});
+        title.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        title.update = function () {
+            this._div.innerHTML = '<h2>Peta Geologi Jabalnusra</h2>';
+        };
+        title.addTo(map);
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        function pop_PetaGeologiJabalnusra_0(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (var i in e.target._eventParents) {
+                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
+                            e.target._eventParents[i].resetStyle(e.target);
+                        }
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">CLASS_LITH</th>\
+                        <td>' + (feature.properties['CLASS_LITH'] !== null ? autolinker.link(String(feature.properties['CLASS_LITH']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Luas_Ha</th>\
+                        <td>' + (feature.properties['Luas_Ha'] !== null ? autolinker.link(String(feature.properties['Luas_Ha']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_PetaGeologiJabalnusra_0_0(feature) {
+            switch(String(feature.properties['CLASS_LITH'])) {
+                case 'Batuan ekstrusi: menegnah: piroklastik':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(91,184,200,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: felsic: lava':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(203,112,79,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: felsic: pyroclastic':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(150,203,119,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: intermediate: lava':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(150,203,119,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: intermediate: polimik':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(194,87,208,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: intermediate: polymict':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(63,228,230,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: intermediate: polymix':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(63,228,230,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: intermediate: pyroclastic':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(173,116,226,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: mafic: lava':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(96,234,50,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: mafic: polymict':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(135,84,216,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Extrusive: mafic: pyroclastic':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(216,62,214,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Formasi Jampang':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(220,185,68,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Intrusime: felsic, granitoid':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(220,185,68,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Intrusive: felsic':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(239,67,130,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Intrusive: felsic: granitoid':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(203,46,122,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Intrusive: intermediate':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(236,71,90,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Intrusive: mafic':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(67,40,236,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Metamorphic: medium: schist':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(209,150,48,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Metamorphic: schist':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(238,179,142,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'ophiolite':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(19,211,19,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sedimen: Klastika: aluvium':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(228,214,102,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sedimen: klastika: Sedang: Batupasir':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(94,92,222,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: alluvium':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(26,130,240,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: chemical: limestone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,54,213,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: alluvium':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(237,54,213,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: breccia':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(100,203,87,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: coarse':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(83,217,117,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: coarse: breccia':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(52,74,239,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: coarse: conglomerate':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(211,16,13,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: conglomerate':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(171,237,63,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: fine':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(223,136,122,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: fine: claystone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(223,136,122,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: fine: marl':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(39,173,221,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: fine: mudstone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(120,152,209,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: fine: shale':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(224,21,146,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: fine: siltstone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(97,237,188,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: flysch':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(47,87,218,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: limestone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(218,45,85,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: marl':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(118,211,166,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: medium: flysch':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(111,71,220,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: medium: limestone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(64,229,213,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: medium: sandstone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(194,70,232,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: clastic: sandstone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(210,114,185,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: reef: limestone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(145,38,206,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Sediment: Reef: limestone':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(98,229,150,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Tectonite: melange':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(227,163,93,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Tectonite: ophiolite':
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(161,205,116,1.0)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_PetaGeologiJabalnusra_0',
+                stroke: false, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(76,155,207,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_PetaGeologiJabalnusra_0');
+        map.getPane('pane_PetaGeologiJabalnusra_0').style.zIndex = 400;
+        map.getPane('pane_PetaGeologiJabalnusra_0').style['mix-blend-mode'] = 'normal';
+        var layer_PetaGeologiJabalnusra_0 = new L.geoJson(json_PetaGeologiJabalnusra_0, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_PetaGeologiJabalnusra_0',
+            layerName: 'layer_PetaGeologiJabalnusra_0',
+            pane: 'pane_PetaGeologiJabalnusra_0',
+            onEachFeature: pop_PetaGeologiJabalnusra_0,
+            style: style_PetaGeologiJabalnusra_0_0,
+        });
+        bounds_group.addLayer(layer_PetaGeologiJabalnusra_0);
+        map.addLayer(layer_PetaGeologiJabalnusra_0);
+        var osmGeocoder = new L.Control.Geocoder({
+            collapsed: true,
+            position: 'topleft',
+            text: 'Search',
+            title: 'Testing'
+        }).addTo(map);
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .className += ' fa fa-search';
+        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
+        .title += 'Search for a place';
+        var overlaysTree = [
+            {label: 'Peta Geologi  Jabalnusra<br /><table><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Batuanekstrusimenegnahpiroklastik0.png" /></td><td>Batuan ekstrusi: menegnah: piroklastik</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusivefelsiclava1.png" /></td><td>Extrusive: felsic: lava</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusivefelsicpyroclastic2.png" /></td><td>Extrusive: felsic: pyroclastic</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusiveintermediatelava3.png" /></td><td>Extrusive: intermediate: lava</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusiveintermediatepolimik4.png" /></td><td>Extrusive: intermediate: polimik</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusiveintermediatepolymict5.png" /></td><td>Extrusive: intermediate: polymict</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusiveintermediatepolymix6.png" /></td><td>Extrusive: intermediate: polymix</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusiveintermediatepyroclastic7.png" /></td><td>Extrusive: intermediate: pyroclastic</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusivemaficlava8.png" /></td><td>Extrusive: mafic: lava</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusivemaficpolymict9.png" /></td><td>Extrusive: mafic: polymict</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Extrusivemaficpyroclastic10.png" /></td><td>Extrusive: mafic: pyroclastic</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_FormasiJampang11.png" /></td><td>Formasi Jampang</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Intrusimefelsicgranitoid12.png" /></td><td>Intrusime: felsic, granitoid</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Intrusivefelsic13.png" /></td><td>Intrusive: felsic</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Intrusivefelsicgranitoid14.png" /></td><td>Intrusive: felsic: granitoid</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Intrusiveintermediate15.png" /></td><td>Intrusive: intermediate</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Intrusivemafic16.png" /></td><td>Intrusive: mafic</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Metamorphicmediumschist17.png" /></td><td>Metamorphic: medium: schist</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Metamorphicschist18.png" /></td><td>Metamorphic: schist</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_ophiolite19.png" /></td><td>ophiolite</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_SedimenKlastikaaluvium20.png" /></td><td>Sedimen: Klastika: aluvium</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_SedimenklastikaSedangBatupasir21.png" /></td><td>Sedimen: klastika: Sedang: Batupasir</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentalluvium22.png" /></td><td>Sediment: alluvium</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentchemicallimestone23.png" /></td><td>Sediment: chemical: limestone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticalluvium24.png" /></td><td>Sediment: clastic: alluvium</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticbreccia25.png" /></td><td>Sediment: clastic: breccia</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticcoarse26.png" /></td><td>Sediment: clastic: coarse</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticcoarsebreccia27.png" /></td><td>Sediment: clastic: coarse: breccia</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticcoarseconglomerate28.png" /></td><td>Sediment: clastic: coarse: conglomerate</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticconglomerate29.png" /></td><td>Sediment: clastic: conglomerate</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticfine30.png" /></td><td>Sediment: clastic: fine</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticfineclaystone31.png" /></td><td>Sediment: clastic: fine: claystone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticfinemarl32.png" /></td><td>Sediment: clastic: fine: marl</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticfinemudstone33.png" /></td><td>Sediment: clastic: fine: mudstone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticfineshale34.png" /></td><td>Sediment: clastic: fine: shale</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticfinesiltstone35.png" /></td><td>Sediment: clastic: fine: siltstone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticflysch36.png" /></td><td>Sediment: clastic: flysch</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticlimestone37.png" /></td><td>Sediment: clastic: limestone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticmarl38.png" /></td><td>Sediment: clastic: marl</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticmediumflysch39.png" /></td><td>Sediment: clastic: medium: flysch</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticmediumlimestone40.png" /></td><td>Sediment: clastic: medium: limestone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticmediumsandstone41.png" /></td><td>Sediment: clastic: medium: sandstone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentclasticsandstone42.png" /></td><td>Sediment: clastic: sandstone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Sedimentreeflimestone43.png" /></td><td>Sediment: reef: limestone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_SedimentReeflimestone44.png" /></td><td>Sediment: Reef: limestone</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Tectonitemelange45.png" /></td><td>Tectonite: melange</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_Tectoniteophiolite46.png" /></td><td>Tectonite: ophiolite</td></tr><tr><td style="text-align: center;"><img src="legend/PetaGeologiJabalnusra_0_47.png" /></td><td></td></tr></table>', layer: layer_PetaGeologiJabalnusra_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: false, 
+        });
+        lay.addTo(map);
+		document.addEventListener("DOMContentLoaded", function() {
+            // set new Layers List height which considers toggle icon
+            function newLayersListHeight() {
+                var layerScrollbarElement = document.querySelector('.leaflet-control-layers-scrollbar');
+                if (layerScrollbarElement) {
+                    var layersListElement = document.querySelector('.leaflet-control-layers-list');
+                    var originalHeight = layersListElement.style.height 
+                        || window.getComputedStyle(layersListElement).height;
+                    var newHeight = parseFloat(originalHeight) - 50;
+                    layersListElement.style.height = newHeight + 'px';
+                }
+            }
+            var isLayersListExpanded = true;
+            var controlLayersElement = document.querySelector('.leaflet-control-layers');
+            var toggleLayerControl = document.querySelector('.leaflet-control-layers-toggle');
+            // toggle Collapsed/Expanded and apply new Layers List height
+            toggleLayerControl.addEventListener('click', function() {
+                if (isLayersListExpanded) {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                } else {
+                    controlLayersElement.classList.add('leaflet-control-layers-expanded');
+                }
+                isLayersListExpanded = !isLayersListExpanded;
+                newLayersListHeight()
+            });	
+			// apply new Layers List height if toggle layerstree
+			if (controlLayersElement) {
+				controlLayersElement.addEventListener('click', function(event) {
+					var toggleLayerHeaderPointer = event.target.closest('.leaflet-layerstree-header-pointer span');
+					if (toggleLayerHeaderPointer) {
+						newLayersListHeight();
+					}
+				});
+			}
+            // Collapsed/Expanded at Start to apply new height
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            setTimeout(function() {
+                toggleLayerControl.click();
+            }, 10);
+            // Collapsed touch/small screen
+            var isSmallScreen = window.innerWidth < 650;
+            if (isSmallScreen) {
+                setTimeout(function() {
+                    controlLayersElement.classList.remove('leaflet-control-layers-expanded');
+                    isLayersListExpanded = !isLayersListExpanded;
+                }, 500);
+            }  
+        });       
+        setBounds();
+        </script>
+    </body>
+</html>
